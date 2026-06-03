@@ -1,10 +1,10 @@
 # apps/api/tests/conftest.py
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 
 from src.main import app
-from src.config import get_settings, Settings
+from src.config import get_settings
 from src import deps
 
 
@@ -20,16 +20,7 @@ def reset_singletons():
 
 
 @pytest.fixture
-def settings_no_backends():
-    with patch("src.config.get_settings", return_value=Settings(
-        redis_url="",
-        azure_storage_connection_string="",
-    )):
-        yield
-
-
-@pytest.fixture
-def client(settings_no_backends):
+def client():
     with TestClient(app) as c:
         yield c
 

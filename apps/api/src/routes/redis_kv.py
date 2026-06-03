@@ -1,5 +1,6 @@
 import redis.asyncio as aioredis
 from typing import AsyncGenerator
+from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from ..config import get_settings
@@ -26,6 +27,7 @@ class KeyValuePair(BaseModel):
     value: str
 
 
+# NOTE: /status and /keys must remain declared before /{key} — FastAPI matches routes in order
 @router.get("/status")
 async def redis_status():
     settings = get_settings()
@@ -34,7 +36,9 @@ async def redis_status():
     client = aioredis.from_url(settings.redis_url, decode_responses=True)
     try:
         await client.ping()
-        return {"connected": True, "url": settings.redis_url.split("@")[-1]}
+        parsed = urlparse(settings.redis_url)
+        safe_url = f"{parsed.scheme}://{parsed.hostname}:{parsed.port}"
+        return {"connected": True, "url": safe_url}
     except Exception as exc:
         return {"connected": False, "detail": str(exc)}
     finally:
