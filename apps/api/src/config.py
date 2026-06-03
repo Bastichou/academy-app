@@ -1,4 +1,6 @@
 from functools import lru_cache
+from typing import Literal
+
 from pydantic_settings import BaseSettings
 
 
@@ -8,7 +10,7 @@ class Settings(BaseSettings):
     redis_url: str = ""
 
     @property
-    def storage_backend(self) -> str:
+    def storage_backend(self) -> Literal["redis", "azure", "memory"]:
         if self.redis_url:
             return "redis"
         if self.azure_storage_connection_string:
@@ -18,6 +20,6 @@ class Settings(BaseSettings):
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 
-@lru_cache
+@lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
