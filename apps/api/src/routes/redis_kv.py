@@ -1,4 +1,5 @@
 import redis.asyncio as aioredis
+from typing import AsyncGenerator
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from ..config import get_settings
@@ -6,7 +7,7 @@ from ..config import get_settings
 router = APIRouter(prefix="/redis")
 
 
-async def _get_kv_client():
+async def _get_kv_client() -> AsyncGenerator[aioredis.Redis, None]:
     settings = get_settings()
     if not settings.redis_url:
         raise HTTPException(
