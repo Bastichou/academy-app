@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 import redis.asyncio as aioredis
 from .base import Message, MessageStorage
@@ -11,19 +12,17 @@ class RedisStorage(MessageStorage):
 
     async def list_messages(self) -> list[Message]:
         ids: list[bytes] = await self._client.lrange(self.INDEX_KEY, 0, -1)
-        messages: list[Message] = []
-        for raw_id in ids:
-            msg_id = raw_id.decode()
-            data = await self._client.hgetall(f"message:{msg_id}")
-            if data:
-                messages.append(
-                    Message(
-                        id=msg_id,
-                        text=data[b"text"].decode(),
-                        author=data[b"author"].decode(),
-                    )
-                )
-        return messages
+        if not ids:
+            return []
+        msg_ids = [raw_id.decode() for raw_id in ids]
+        results = await asyncio.gather(
+            *[self._client.hgetall(f"message:{msg_id}") for msg_id in msg_ids]
+        )
+        return [
+            Message(id=msg_id, text=data[b"text"].decode(), author=data[b"author"].decode())
+            for msg_id, data in zip(msg_ids, results)
+            if data
+        ]
 
     async def create_message(self, text: str, author: str) -> Message:
         msg_id = str(uuid.uuid4())
