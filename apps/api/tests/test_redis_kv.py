@@ -9,6 +9,13 @@ NO_REDIS = Settings(redis_url="", azure_storage_connection_string="")
 WITH_REDIS = Settings(redis_url="redis://localhost:6379", azure_storage_connection_string="")
 
 
+def _make_redis_mock(**ping_kwargs) -> AsyncMock:
+    m = AsyncMock()
+    m.ping = AsyncMock(**ping_kwargs)
+    m.aclose = AsyncMock()
+    return m
+
+
 class TestRedisStatus:
     def test_no_redis_configured(self):
         with patch("src.routes.redis_kv.get_settings", return_value=NO_REDIS):
@@ -17,20 +24,14 @@ class TestRedisStatus:
                 assert body["connected"] is False
 
     def test_redis_connected(self):
-        mock_client = AsyncMock()
-        mock_client.ping = AsyncMock(return_value=True)
-        mock_client.aclose = AsyncMock()
         with patch("src.routes.redis_kv.get_settings", return_value=WITH_REDIS):
-            with patch("src.routes.redis_kv.aioredis.from_url", return_value=mock_client):
+            with patch("src.routes.redis_kv.aioredis.from_url", return_value=_make_redis_mock(return_value=True)):
                 with TestClient(app) as c:
                     assert c.get("/api/redis/status").json()["connected"] is True
 
     def test_redis_unreachable(self):
-        mock_client = AsyncMock()
-        mock_client.ping = AsyncMock(side_effect=ConnectionError("refused"))
-        mock_client.aclose = AsyncMock()
         with patch("src.routes.redis_kv.get_settings", return_value=WITH_REDIS):
-            with patch("src.routes.redis_kv.aioredis.from_url", return_value=mock_client):
+            with patch("src.routes.redis_kv.aioredis.from_url", return_value=_make_redis_mock(side_effect=ConnectionError("refused"))):
                 with TestClient(app) as c:
                     body = c.get("/api/redis/status").json()
                     assert body["connected"] is False

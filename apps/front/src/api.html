@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Check — Academy Cloud</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Hero card (dark, intro) ── */
+    .hero-panel {
+      background: var(--ink);
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 1.2rem 1.15rem;
+      margin-bottom: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-panel::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        transparent, transparent 27px,
+        rgba(255,255,255,0.025) 27px, rgba(255,255,255,0.025) 28px
+      );
+      pointer-events: none;
+    }
+    .hero-label {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #555;
+      margin-bottom: 0.4rem;
+      position: relative;
+    }
+    .hero-title {
+      font-family: 'VT323', monospace;
+      font-size: 2rem;
+      color: var(--green-mid);
+      letter-spacing: 0.06em;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+    .hero-desc {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.78rem;
+      color: #999;
+      line-height: 1.7;
+      margin-bottom: 0.9rem;
+      position: relative;
+    }
+
+    /* ── Pre-flight checklist ── */
+    .pre-flight {
+      background: rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 3px;
+      padding: 0.8rem 0.95rem;
+      position: relative;
+    }
+    .pf-title {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.57rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 0.65rem;
+    }
+    .pf-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      margin-bottom: 0.55rem;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 0.67rem;
+    }
+    .pf-item:last-child { margin-bottom: 0; }
+    .pf-icon { flex-shrink: 0; font-size: 0.6rem; margin-top: 0.05rem; line-height: 1.4; }
+    .pf-icon.req  { color: var(--green-mid); }
+    .pf-icon.opt  { color: #555; }
+    .pf-body { color: #999; line-height: 1.5; }
+    .pf-body strong { color: #ccc; font-weight: 600; }
+    .pf-cmd {
+      display: block;
+      color: #777;
+      font-size: 0.62rem;
+      margin-top: 0.15rem;
+    }
+    .pf-tag {
+      display: inline-block;
+      font-size: 0.56rem;
+      padding: 0.05rem 0.3rem;
+      border-radius: 2px;
+      margin-left: 0.3rem;
+      vertical-align: middle;
+    }
+    .pf-tag.required { background: rgba(22,163,74,0.15); color: #16a34a; }
+    .pf-tag.optional { background: rgba(255,255,255,0.05); color: #666; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><span class="prompt">~/</span>academy-cloud<span class="cursor"></span></div>
+  <div class="nav-links">
+    <a href="index.html">[ home ]</a>
+    <div class="nav-dropdown">
+      <span class="nav-dd-trigger active">[ api ▾ ]</span>
+      <div class="nav-dd-menu">
+        <a href="api.html" class="active">system check</a>
+        <a href="messages.html">messages</a>
+        <a href="redis.html">kv store</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <div class="left-col">
+
+    <!-- ── Hero card ── -->
+    <div class="hero-panel">
+      <div class="hero-label">// api explorer · pre-flight</div>
+      <div class="hero-title">System Check</div>
+      <div class="hero-desc">
+        Run these two checks to confirm the frontend can reach the backend API.
+        Once both return green, pick a module below.
+      </div>
+
+      <div class="pre-flight">
+        <div class="pf-title">before you begin</div>
+
+        <div class="pf-item">
+          <span class="pf-icon req">✦</span>
+          <div class="pf-body">
+            <strong>Stack running</strong>
+            <span class="pf-tag required">required</span>
+            <span class="pf-cmd">cd infrastructure &amp;&amp; docker compose up --build</span>
+          </div>
+        </div>
+
+        <div class="pf-item">
+          <span class="pf-icon req">✦</span>
+          <div class="pf-body">
+            <strong>App accessible</strong>
+            <span class="pf-tag required">required</span>
+            <span class="pf-cmd">http://localhost:8000</span>
+          </div>
+        </div>
+
+        <div class="pf-item">
+          <span class="pf-icon opt">○</span>
+          <div class="pf-body">
+            <strong>REDIS_URL</strong>
+            <span class="pf-tag optional">optional · KV Store module</span>
+            <span class="pf-cmd">REDIS_URL=redis://&lt;host&gt;:6379</span>
+          </div>
+        </div>
+
+        <div class="pf-item">
+          <span class="pf-icon opt">○</span>
+          <div class="pf-body">
+            <strong>Storage connection string</strong>
+            <span class="pf-tag optional">optional · cloud storage</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Status ── -->
+    <div class="section-sep">Status</div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-get">GET</span>/api/health</div>
+      <div class="health-row">
+        <span id="healthBadge">— pending</span>
+        <button class="btn btn-outline" onclick="checkHealth()">run</button>
+      </div>
+    </div>
+
+    <!-- ── Configuration ── -->
+    <div class="section-sep">Configuration</div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-get">GET</span>/api/config</div>
+      <button class="btn btn-dark" onclick="loadConfig()">▶ Load config</button>
+    </div>
+
+    <!-- ── Modules ── -->
+    <div class="section-sep">Modules</div>
+
+    <div class="module-grid">
+      <a href="messages.html" class="module-card mod-messages">
+        <div class="mod-num">01</div>
+        <div class="mod-name">Messages</div>
+        <div class="mod-desc">POST/GET messages · persistent storage</div>
+        <span class="mod-arrow">→</span>
+      </a>
+      <a href="redis.html" class="module-card mod-redis">
+        <div class="mod-num">02</div>
+        <div class="mod-name">KV Store</div>
+        <div class="mod-desc">Redis key-value store · requires REDIS_URL</div>
+        <span class="mod-arrow">→</span>
+      </a>
+    </div>
+
+  </div>
+
+  <div class="terminal">
+    <div class="term-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <div class="term-name">academy-api · system check</div>
+      <button class="btn-clear" onclick="clearTerminal()">clear</button>
+    </div>
+    <div class="term-output" id="term">
+      <div class="log">
+        <span class="log-ts">--:--:--</span>
+        <span class="log-info">$ Stack health check and configuration inspector.</span>
+      </div>
+      <div class="log">
+        <span class="log-ts">--:--:--</span>
+        <span class="log-info">$ Run the checks on the left to begin.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="terminal.js"></script>
+<script>
+  async function checkHealth() {
+    logReq('GET', '/api/health');
+    try {
+      const res = await fetch('/api/health');
+      const data = await res.json();
+      const badge = document.getElementById('healthBadge');
+      if (res.ok) {
+        badge.textContent = '● ' + data.service;
+        badge.className = 'ok';
+        logRes(res.status, JSON.stringify(data));
+        log(`<div class="log-indent">&nbsp;&nbsp;API is reachable. Proceed to a module.</div>`);
+      } else {
+        badge.textContent = '● error';
+        badge.className = 'err';
+        logRes(res.status, JSON.stringify(data));
+      }
+    } catch (e) {
+      const badge = document.getElementById('healthBadge');
+      badge.textContent = '● unreachable';
+      badge.className = 'err';
+      logRes('ERR', e.message);
+      log(`<div class="log-indent">&nbsp;&nbsp;Check that the stack is running: <span class="log-json">docker compose up --build</span></div>`);
+    }
+  }
+
+  async function loadConfig() {
+    logReq('GET', '/api/config');
+    try {
+      const res = await fetch('/api/config');
+      const data = await res.json();
+      logRes(res.status, 'active configuration');
+      Object.entries(data).forEach(([k, v]) => {
+        let valHtml;
+        if (typeof v === 'boolean') {
+          valHtml = v
+            ? `<span class="log-bool-true">true</span>`
+            : `<span class="log-bool-false">false</span>`;
+        } else {
+          valHtml = `<span class="log-json">${escHtml(String(v))}</span>`;
+        }
+        log(`<div class="log-indent">&nbsp;&nbsp;${escHtml(k)}: ${valHtml}</div>`);
+      });
+    } catch (e) {
+      logRes('ERR', e.message);
+    }
+  }
+
+  checkHealth();
+</script>
+</body>
+</html>

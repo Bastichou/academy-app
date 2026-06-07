@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages — Academy Cloud</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root { --module-accent: #16a34a; }
+  </style>
+</head>
+<body class="has-chapter-bar">
+
+<nav>
+  <div class="logo"><span class="prompt">~/</span>academy-cloud<span class="cursor"></span></div>
+  <div class="nav-links">
+    <a href="index.html">[ home ]</a>
+    <div class="nav-dropdown">
+      <span class="nav-dd-trigger active">[ api ▾ ]</span>
+      <div class="nav-dd-menu">
+        <a href="api.html">system check</a>
+        <a href="messages.html" class="active">messages</a>
+        <a href="redis.html">kv store</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="chapter-bar">
+  <a href="api.html" class="chapter-back">← system check</a>
+  <div class="chapter-identity">
+    <span class="chapter-num">module 01</span>
+    <span class="chapter-title">Messages</span>
+  </div>
+  <a href="redis.html" class="chapter-next">KV Store →</a>
+</div>
+
+<div class="layout">
+  <div class="left-col">
+
+    <!-- ── Feature card ── -->
+    <div class="feature-card">
+      <div class="feature-num">01 — Messages</div>
+      <div class="feature-title">Persistent Message Board</div>
+      <div class="feature-desc">
+        Post messages with a text body and author name, then retrieve the full list.
+        The storage backend is swappable at runtime — in-memory by default, upgrades
+        to Redis or a cloud database via environment variables.
+        Use <code style="font-size:0.75rem; background:var(--paper-dark); padding:0.05rem 0.3rem; border-radius:2px;">GET /api/config</code> to inspect which backend is currently active.
+      </div>
+    </div>
+
+    <!-- ── Requirements ── -->
+    <div class="req-box">
+      <div class="req-title">required env vars</div>
+      <div class="env-none">None — works out of the box.</div>
+      <div class="env-hint">
+        In-memory storage is active by default. Data is lost on container restart.<br>
+        Set <code>REDIS_URL</code> to persist messages in Redis,
+        or set <code>AZURE_STORAGE_CONNECTION_STRING</code> for cloud storage.
+      </div>
+    </div>
+
+    <!-- ── Debug tips ── -->
+    <details class="debug-panel">
+      <summary>// debug tips</summary>
+      <div class="debug-content">
+        <div class="debug-item">
+          <span class="debug-symptom">Empty list [] from GET /api/messages</span>
+          <span class="debug-fix">Expected on a fresh start — no messages have been created yet. Use POST to add the first one.</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-symptom">Messages lost after restarting the container</span>
+          <span class="debug-fix">In-memory storage is ephemeral. To persist data across restarts, configure a backend: <code>REDIS_URL</code> or a cloud storage connection string.</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-symptom">400 on POST /api/messages</span>
+          <span class="debug-fix">The <code>text</code> field is required and cannot be blank. <code>author</code> defaults to "Anonymous" if omitted.</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-symptom">500 on any endpoint</span>
+          <span class="debug-fix">Server-side error. Check the API container logs: <code>docker compose logs api</code></span>
+        </div>
+      </div>
+    </details>
+
+    <!-- ── API calls ── -->
+    <div class="section-sep">API calls</div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-get">GET</span>/api/messages</div>
+      <button class="btn btn-dark" onclick="loadMessages()">▶ Load messages</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-post">POST</span>/api/messages</div>
+      <form onsubmit="postMessage(event)">
+        <label for="author">Author</label>
+        <input id="author" type="text" placeholder="Your name"/>
+        <label for="text">Message</label>
+        <textarea id="text" placeholder="Your message..." required></textarea>
+        <button type="submit" class="btn btn-dark">Send →</button>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="terminal">
+    <div class="term-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <div class="term-name">academy-api · messages</div>
+      <button class="btn-clear" onclick="clearTerminal()">clear</button>
+    </div>
+    <div class="term-output" id="term">
+      <div class="log">
+        <span class="log-ts">--:--:--</span>
+        <span class="log-info">$ Module 01 — Messages. Load or post messages using the controls on the left.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="terminal.js"></script>
+<script>
+  async function loadMessages() {
+    logReq('GET', '/api/messages');
+    try {
+      const res = await fetch('/api/messages');
+      const msgs = await res.json();
+      logRes(res.status, `${msgs.length} message(s)`);
+      if (msgs.length === 0) {
+        log(`<div class="log-indent">&nbsp;&nbsp;No messages yet. Use POST to create the first one.</div>`);
+      } else {
+        msgs.forEach(m => {
+          log(`<div class="msg-block"><div class="msg-author">${escHtml(m.author)}</div><div class="msg-text">${escHtml(m.text)}</div><div class="msg-id">${escHtml(m.id)}</div></div>`);
+        });
+      }
+    } catch (e) {
+      logRes('ERR', e.message);
+    }
+  }
+
+  async function postMessage(e) {
+    e.preventDefault();
+    const author = document.getElementById('author').value.trim() || 'Anonymous';
+    const text = document.getElementById('text').value.trim();
+    if (!text) return;
+    const body = { author, text };
+    logReq('POST', `/api/messages ${JSON.stringify(body)}`);
+    try {
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      logRes(res.status, JSON.stringify(data));
+      if (res.status === 201) {
+        document.getElementById('text').value = '';
+        log(`<div class="log-indent">&nbsp;&nbsp;Message created. Run GET /api/messages to see the full list.</div>`);
+      }
+    } catch (e) {
+      logRes('ERR', e.message);
+    }
+  }
+</script>
+</body>
+</html>

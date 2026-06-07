@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KV Store — Academy Cloud</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root { --module-accent: #dc2626; }
+  </style>
+</head>
+<body class="has-chapter-bar">
+
+<nav>
+  <div class="logo"><span class="prompt">~/</span>academy-cloud<span class="cursor"></span></div>
+  <div class="nav-links">
+    <a href="index.html">[ home ]</a>
+    <div class="nav-dropdown">
+      <span class="nav-dd-trigger active">[ api ▾ ]</span>
+      <div class="nav-dd-menu">
+        <a href="api.html">system check</a>
+        <a href="messages.html">messages</a>
+        <a href="redis.html" class="active">kv store</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="chapter-bar">
+  <a href="messages.html" class="chapter-back">← Messages</a>
+  <div class="chapter-identity">
+    <span class="chapter-num">module 02</span>
+    <span class="chapter-title">Key-Value Store</span>
+  </div>
+  <a href="api.html" class="chapter-next">system check →</a>
+</div>
+
+<div class="layout">
+  <div class="left-col">
+
+    <!-- ── Feature card ── -->
+    <div class="feature-card">
+      <div class="feature-num">02 — Key-Value Store</div>
+      <div class="feature-title">Redis as Managed Cache</div>
+      <div class="feature-desc">
+        Explore Redis as an in-memory key-value store. Set, get, list, and delete
+        arbitrary keys directly through the API. This module introduces managed
+        caching and the operator workflow: provision a Redis instance, wire it
+        to the API container via <code style="font-size:0.75rem; background:var(--paper-dark); padding:0.05rem 0.3rem; border-radius:2px;">REDIS_URL</code>, then verify connectivity.
+      </div>
+    </div>
+
+    <!-- ── Requirements ── -->
+    <div class="req-box">
+      <div class="req-title">required env vars</div>
+      <div class="env-line">
+        <span class="env-key">REDIS_URL</span>
+        <span class="env-eq">=</span>
+        <span class="env-val">redis://&lt;host&gt;:6379</span>
+        <span class="env-note"># required</span>
+      </div>
+      <div class="env-hint">
+        Quick start — run Redis locally:<br>
+        <code>docker run -d -p 6379:6379 redis:7</code><br><br>
+        Then restart the API with the env var set:<br>
+        <code>REDIS_URL=redis://localhost:6379 docker compose up api</code>
+      </div>
+    </div>
+
+    <!-- ── Debug tips ── -->
+    <details class="debug-panel">
+      <summary>// debug tips</summary>
+      <div class="debug-content">
+        <div class="debug-item">
+          <span class="debug-symptom">503 on GET /keys, GET /{key}, POST /keys, DELETE /{key}</span>
+          <span class="debug-fix"><code>REDIS_URL</code> is not set on the API container. Note: <code>GET /status</code> always returns 200 (even unconfigured) — use it to confirm the variable is missing.</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-symptom">connected: false in GET /status</span>
+          <span class="debug-fix">Redis is configured but unreachable at the given URL. Check that the Redis container is running and the hostname/port in <code>REDIS_URL</code> is correct.</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-symptom">404 on GET /api/redis/{key}</span>
+          <span class="debug-fix">The key does not exist in Redis. Use <code>POST /api/redis/keys</code> to create it first, or <code>GET /api/redis/keys</code> to list what exists.</span>
+        </div>
+        <div class="debug-item">
+          <span class="debug-symptom">Keys disappear after a Redis restart</span>
+          <span class="debug-fix">Redis stores data in memory by default. Enable persistence (AOF or RDB snapshots) on your Redis instance if you need data to survive restarts.</span>
+        </div>
+      </div>
+    </details>
+
+    <!-- ── API calls ── -->
+    <div class="section-sep">Connectivity</div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-get">GET</span>/api/redis/status</div>
+      <button class="btn btn-dark" onclick="checkRedisStatus()">▶ Check connection</button>
+    </div>
+
+    <div class="section-sep">Key operations</div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-get">GET</span>/api/redis/keys</div>
+      <button class="btn btn-dark" onclick="loadRedisKeys()">▶ List all keys</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-get">GET</span>/api/redis/{key}</div>
+      <form onsubmit="getRedisKey(event)">
+        <label for="getKey">Key</label>
+        <input id="getKey" type="text" placeholder="my-key" required/>
+        <button type="submit" class="btn btn-dark">▶ Get value</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-post">POST</span>/api/redis/keys</div>
+      <form onsubmit="setRedisKey(event)">
+        <label for="setKey">Key</label>
+        <input id="setKey" type="text" placeholder="my-key" required/>
+        <label for="setValue">Value</label>
+        <input id="setValue" type="text" placeholder="my-value" required/>
+        <button type="submit" class="btn btn-dark">▶ Set key</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="method method-del">DEL</span>/api/redis/{key}</div>
+      <form onsubmit="deleteRedisKey(event)">
+        <label for="delKey">Key</label>
+        <input id="delKey" type="text" placeholder="my-key" required/>
+        <button type="submit" class="btn btn-del">▶ Delete key</button>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="terminal">
+    <div class="term-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <div class="term-name">academy-api · kv store</div>
+      <button class="btn-clear" onclick="clearTerminal()">clear</button>
+    </div>
+    <div class="term-output" id="term">
+      <div class="log">
+        <span class="log-ts">--:--:--</span>
+        <span class="log-info">$ Module 02 — Key-Value Store. Start with GET /status to verify Redis connectivity.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="terminal.js"></script>
+<script>
+  function log503() {
+    logRes(503, 'KV store unavailable — REDIS_URL not configured on the API container');
+    log(`<div class="log-indent">&nbsp;&nbsp;See the requirements box on the left for setup instructions.</div>`);
+  }
+
+  async function checkRedisStatus() {
+    logReq('GET', '/api/redis/status');
+    try {
+      const res = await fetch('/api/redis/status');
+      const data = await res.json();
+      if (data.connected) {
+        logRes(res.status, JSON.stringify(data));
+        log(`<div class="log-indent">&nbsp;&nbsp;<span class="log-ok">● Redis reachable.</span> You can now use the key operations below.</div>`);
+      } else {
+        log(`<div class="log"><span class="log-ts">${ts()}</span><span class="log-err">● disconnected</span><span class="log-json"> ${escHtml(JSON.stringify(data))}</span></div>`);
+        if (!data.connected && !data.url) {
+          log(`<div class="log-indent">&nbsp;&nbsp;REDIS_URL is not set. Configure it on the API container and restart.</div>`);
+        } else {
+          log(`<div class="log-indent">&nbsp;&nbsp;Redis is configured but unreachable. Verify the host and port in REDIS_URL.</div>`);
+        }
+      }
+    } catch (e) {
+      logRes('ERR', e.message);
+    }
+  }
+
+  async function loadRedisKeys() {
+    logReq('GET', '/api/redis/keys');
+    try {
+      const res = await fetch('/api/redis/keys');
+      if (res.status === 503) { log503(); return; }
+      const data = await res.json();
+      logRes(res.status, `${data.keys.length} key(s)`);
+      if (data.keys.length > 0) {
+        data.keys.forEach(k => {
+          log(`<div class="log-indent">&nbsp;&nbsp;→ ${escHtml(k)}</div>`);
+        });
+      } else {
+        log(`<div class="log-indent">&nbsp;&nbsp;No keys found. Use POST /api/redis/keys to create one.</div>`);
+      }
+    } catch (e) {
+      logRes('ERR', e.message);
+    }
+  }
+
+  async function getRedisKey(e) {
+    e.preventDefault();
+    const key = document.getElementById('getKey').value.trim();
+    if (!key) return;
+    logReq('GET', `/api/redis/${key}`);
+    try {
+      const res = await fetch(`/api/redis/${encodeURIComponent(key)}`);
+      if (res.status === 503) { log503(); return; }
+      const data = await res.json();
+      logRes(res.status, JSON.stringify(data));
+      if (res.status === 404) {
+        log(`<div class="log-indent">&nbsp;&nbsp;Key not found. Use GET /api/redis/keys to list existing keys.</div>`);
+      }
+    } catch (e) {
+      logRes('ERR', e.message);
+    }
+  }
+
+  async function setRedisKey(e) {
+    e.preventDefault();
+    const key   = document.getElementById('setKey').value.trim();
+    const value = document.getElementById('setValue').value.trim();
+    if (!key || !value) return;
+    const body = { key, value };
+    logReq('POST', `/api/redis/keys ${JSON.stringify(body)}`);
+    try {
+      const res = await fetch('/api/redis/keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (res.status === 503) { log503(); return; }
+      const data = await res.json();
+      logRes(res.status, JSON.stringify(data));
+      if (res.ok) {
+        log(`<div class="log-indent">&nbsp;&nbsp;Key set. Use GET /api/redis/${escHtml(key)} to read it back.</div>`);
+      }
+    } catch (e) {
+      logRes('ERR', e.message);
+    }
+  }
+
+  async function deleteRedisKey(e) {
+    e.preventDefault();
+    const key = document.getElementById('delKey').value.trim();
+    if (!key) return;
+    logReq('DELETE', `/api/redis/${key}`);
+    try {
+      const res = await fetch(`/api/redis/${encodeURIComponent(key)}`, { method: 'DELETE' });
+      if (res.status === 503) { log503(); return; }
+      if (res.status === 204) {
+        logRes(204, `key '${key}' deleted successfully`);
+      } else {
+        const data = await res.json();
+        logRes(res.status, JSON.stringify(data));
+        if (res.status === 404) {
+          log(`<div class="log-indent">&nbsp;&nbsp;Key does not exist. Run GET /api/redis/keys to see what's available.</div>`);
+        }
+      }
+    } catch (e) {
+      logRes('ERR', e.message);
+    }
+  }
+</script>
+</body>
+</html>
