@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --dev
+      - run: uv sync --extra dev
       - run: uv run pytest
 
   lint:
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --dev
+      - run: uv sync --extra dev
       - run: uv run ruff check .
 
   build-push:
