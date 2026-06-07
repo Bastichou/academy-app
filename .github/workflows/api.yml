@@ -16,8 +16,8 @@ jobs:
       run:
         working-directory: apps/api
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v6.0.3
+      - uses: astral-sh/setup-uv@v8.2.0
       - run: uv sync --extra dev
       - run: uv run pytest
 
@@ -27,8 +27,8 @@ jobs:
       run:
         working-directory: apps/api
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v6.0.3
+      - uses: astral-sh/setup-uv@v8.2.0
       - run: uv sync --extra dev
       - run: uv run ruff check .
 
@@ -39,16 +39,16 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.3
 
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4.2.0
         if: github.event_name == 'push'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: docker/metadata-action@v5
+      - uses: docker/metadata-action@v6.1.0
         id: meta
         with:
           images: ghcr.io/${{ github.repository }}/api
@@ -57,7 +57,7 @@ jobs:
             type=semver,pattern={{version}}
             type=sha
 
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7.2.0
         with:
           context: ./apps/api
           push: ${{ github.event_name == 'push' }}
