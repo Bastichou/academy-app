@@ -68,12 +68,28 @@ Without this variable the API stores messages in memory (data is lost on restart
 
 ## CI/CD
 
-GitHub Actions builds and publishes Docker images to the GitHub Container Registry (`ghcr.io`) on every push to `main` and on version tags (`v*`).
+GitHub Actions builds and publishes Docker images to the GitHub Container Registry (`ghcr.io`).
+
+| Workflow | Trigger | Path filter |
+|----------|---------|-------------|
+| [api.yml](.github/workflows/api.yml) | push / PR to `main`, manual | `apps/api/**` |
+| [front.yml](.github/workflows/front.yml) | push / PR to `main`, manual | `apps/front/**` |
+
+Each workflow runs tests and lint, then builds and pushes the image (push to `main` only).
 
 Images are tagged with:
-- `main` (latest build from the main branch)
-- `vX.Y.Z` (semantic version, when a tag is pushed)
-- Short git SHA (for precise traceability)
+- `main` — latest build from the main branch
+- Short git SHA — for precise traceability
 
-See [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml).
+### Manual trigger
+
+**GitHub UI:** Actions → select workflow → "Run workflow".
+
+**GitHub CLI:**
+```bash
+gh workflow run api.yml --ref main
+gh workflow run front.yml --ref main
+```
+
+> The path filter means a push that only touches workflow files or the README will **not** trigger a run automatically — use the manual trigger in that case.
 
