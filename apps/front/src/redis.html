@@ -153,6 +153,7 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script src="terminal.js"></script>
 <script>
   function log503() {
@@ -163,7 +164,7 @@
   async function checkRedisStatus() {
     logReq('GET', '/api/redis/status');
     try {
-      const res = await fetch('/api/redis/status');
+      const res = await fetch(apiUrl('/api/redis/status'));
       const data = await res.json();
       if (data.connected) {
         logRes(res.status, JSON.stringify(data));
@@ -184,7 +185,7 @@
   async function loadRedisKeys() {
     logReq('GET', '/api/redis/keys');
     try {
-      const res = await fetch('/api/redis/keys');
+      const res = await fetch(apiUrl('/api/redis/keys'));
       if (res.status === 503) { log503(); return; }
       const data = await res.json();
       logRes(res.status, `${data.keys.length} key(s)`);
@@ -206,7 +207,7 @@
     if (!key) return;
     logReq('GET', `/api/redis/${key}`);
     try {
-      const res = await fetch(`/api/redis/${encodeURIComponent(key)}`);
+      const res = await fetch(apiUrl(`/api/redis/${encodeURIComponent(key)}`));
       if (res.status === 503) { log503(); return; }
       const data = await res.json();
       logRes(res.status, JSON.stringify(data));
@@ -226,7 +227,7 @@
     const body = { key, value };
     logReq('POST', `/api/redis/keys ${JSON.stringify(body)}`);
     try {
-      const res = await fetch('/api/redis/keys', {
+      const res = await fetch(apiUrl('/api/redis/keys'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -248,7 +249,7 @@
     if (!key) return;
     logReq('DELETE', `/api/redis/${key}`);
     try {
-      const res = await fetch(`/api/redis/${encodeURIComponent(key)}`, { method: 'DELETE' });
+      const res = await fetch(apiUrl(`/api/redis/${encodeURIComponent(key)}`), { method: 'DELETE' });
       if (res.status === 503) { log503(); return; }
       if (res.status === 204) {
         logRes(204, `key '${key}' deleted successfully`);

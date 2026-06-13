@@ -32,6 +32,23 @@ Browser → Nginx (:80)
 
 Nginx proxies all `/api/*` requests to the `api` service — no CORS, no hardcoded URLs.
 
+## Configuring the API endpoint
+
+The frontend stays static (no build step). All API calls go through the `apiUrl()`
+helper, which prepends `window.API_BASE` (defined in `config.js`).
+
+- **Default** — `API_BASE` empty → same-origin relative `/api/*`, proxied by Nginx.
+  This is the current behavior and needs no configuration.
+- **Override** — set the `API_BASE` env var on the container to call a backend
+  directly (e.g. `API_BASE=https://api.example.com`). At startup,
+  `docker-entrypoint.d/40-api-base.sh` regenerates `config.js` from it. The target
+  API must then allow CORS, since requests bypass the Nginx proxy.
+
+```bash
+docker run -e API_BASE=https://api.example.com -p 8080:80 \
+  ghcr.io/bastichou/academy-app/front:main
+```
+
 ## API routes covered
 
 ### System check (`api.html`)

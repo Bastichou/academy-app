@@ -1,3 +1,10 @@
+// Prefix an /api/* path with the runtime-configured API base (config.js).
+// Empty API_BASE -> same-origin relative path, proxied by Nginx (default).
+function apiUrl(path) {
+  const base = (window.API_BASE || '').replace(/\/$/, '');
+  return base + path;
+}
+
 function ts() { return new Date().toTimeString().slice(0, 8); }
 
 function log(html) {

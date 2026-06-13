@@ -122,12 +122,13 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script src="terminal.js"></script>
 <script>
   async function loadMessages() {
     logReq('GET', '/api/messages');
     try {
-      const res = await fetch('/api/messages');
+      const res = await fetch(apiUrl('/api/messages'));
       const msgs = await res.json();
       logRes(res.status, `${msgs.length} message(s)`);
       if (msgs.length === 0) {
@@ -150,7 +151,7 @@
     const body = { author, text };
     logReq('POST', `/api/messages ${JSON.stringify(body)}`);
     try {
-      const res = await fetch('/api/messages', {
+      const res = await fetch(apiUrl('/api/messages'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

@@ -230,12 +230,13 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script src="terminal.js"></script>
 <script>
   async function checkHealth() {
     logReq('GET', '/api/health');
     try {
-      const res = await fetch('/api/health');
+      const res = await fetch(apiUrl('/api/health'));
       const data = await res.json();
       const badge = document.getElementById('healthBadge');
       if (res.ok) {
@@ -260,7 +261,7 @@
   async function loadConfig() {
     logReq('GET', '/api/config');
     try {
-      const res = await fetch('/api/config');
+      const res = await fetch(apiUrl('/api/config'));
       const data = await res.json();
       logRes(res.status, 'active configuration');
       Object.entries(data).forEach(([k, v]) => {
