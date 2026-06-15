@@ -23,7 +23,10 @@ uv run pytest tests/test_messages.py::test_create_message_returns_201 -v
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `REDIS_URL` | No | `""` | Redis connection URL, e.g. `redis://localhost:6379`. Enables Redis storage. |
-| `AZURE_STORAGE_CONNECTION_STRING` | No | `""` | Azure Table Storage connection string. Enables Azure storage. |
+| `AZURE_STORAGE_CONNECTION_STRING` | No | `""` | Storage Account connection string. Enables Azure Table storage **and** the Blob Storage routes. |
+| `AZURE_SERVICEBUS_CONNECTION_STRING` | No | `""` | Service Bus namespace connection string. Enables the Service Bus routes. |
+| `AZURE_SERVICEBUS_QUEUE` | No | `workshop` | Queue used by the Service Bus send/consume routes. |
+| `AZURE_BLOB_CONTAINER` | No | `workshop` | Blob container used by the Blob Storage routes (created if missing). |
 
 ### Storage Backend Priority
 
@@ -48,6 +51,26 @@ All routes are prefixed with `/api`.
 | `GET` | `/api/messages` | — | List all messages |
 | `POST` | `/api/messages` | `{"text": str, "author": str}` | Create a message (`author` defaults to `"Anonyme"`) |
 
+### Status (feature discovery)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/status` | Lists every feature and whether it is enabled by the current configuration. Reports config only (no live probing), so the frontend can show a big picture of what's available. Exposes only env-var **names**, never their values. |
+
+Example response:
+```json
+{
+  "app_version": "0.1.0",
+  "storage_backend": "memory",
+  "features": [
+    {"id": "messages", "name": "Messages", "enabled": true, "path": "/api/messages", "backend": "memory"},
+    {"id": "redis", "name": "Redis Key/Value", "enabled": false, "path": "/api/redis", "env": "REDIS_URL"},
+    {"id": "azure_servicebus", "name": "Azure Service Bus", "enabled": false, "path": "/api/azure/servicebus", "env": "AZURE_SERVICEBUS_CONNECTION_STRING"},
+    {"id": "azure_blob", "name": "Azure Blob Storage", "enabled": false, "path": "/api/azure/blob", "env": "AZURE_STORAGE_CONNECTION_STRING"}
+  ]
+}
+```
+
 ### Config
 
 | Method | Path | Description |
@@ -60,7 +83,9 @@ Example response:
   "app_version": "0.1.0",
   "storage_backend": "memory",
   "redis_connected": false,
-  "azure_storage_configured": false
+  "azure_storage_configured": false,
+  "azure_servicebus_configured": false,
+  "azure_blob_configured": false
 }
 ```
 
@@ -75,6 +100,41 @@ These routes expose raw Redis operations for workshop exercises. They return `50
 | `GET` | `/api/redis/{key}` | — | Get value for a key (404 if missing) |
 | `POST` | `/api/redis/keys` | `{"key": str, "value": str}` | Set a key/value pair |
 | `DELETE` | `/api/redis/{key}` | — | Delete a key (404 if missing) |
+
+### Azure Service Bus (Workshop Utility)
+
+Vendor-specific managed services live under the cloud-named prefix `/api/azure/`. These
+routes exercise an Azure Service Bus queue and return `503` when
+`AZURE_SERVICEBUS_CONNECTION_STRING` is not set.
+
+| Method | Path | Body | Description |
+|---|---|---|---|
+| `GET` | `/api/azure/servicebus/status` | — | Report connection status to the configured queue |
+| `POST` | `/api/azure/servicebus/messages` | `{"body": str}` | Send a message to the queue (201) |
+| `GET` | `/api/azure/servicebus/messages?max=10` | — | Consume up to `max` messages (receive-and-delete) — for testing |
+
+### Azure Blob Storage (Workshop Utility)
+
+These routes read/write blobs in a container of the Storage Account. They reuse
+`AZURE_STORAGE_CONNECTION_STRING` and return `503` when it is not set. The container
+(`AZURE_BLOB_CONTAINER`, default `workshop`) is created on first use.
+
+| Method | Path | Body | Description |
+|---|---|---|---|
+| `GET` | `/api/azure/blob/status` | — | Report connection status to the Storage Account |
+| `GET` | `/api/azure/blob/` | — | List blob names in the container |
+| `PUT` | `/api/azure/blob/{name}` | `{"content": str}` | Write (overwrite) a blob |
+| `GET` | `/api/azure/blob/{name}` | — | Read a blob's content (404 if missing) |
+
+#### Error semantics (Azure routes)
+
+| Status | When |
+|---|---|
+| `503` | Service not configured (its connection-string env var is unset) |
+| `500` | Connection string is set but malformed |
+| `502` | The Azure call itself failed (bad credentials, missing queue/container, network) — the upstream error message is returned in `detail` |
+| `422` | Invalid request input (e.g. `max` outside `1..100` on the consume route) |
+| `404` | Blob not found |
 
 ## Docker
 

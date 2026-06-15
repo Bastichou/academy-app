@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KV Store — Academy Cloud</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../style.css">
   <style>
     :root { --module-accent: #dc2626; }
   </style>
 </head>
-<body class="has-chapter-bar">
+<body class="has-subnav">
 
 <nav>
   <div class="logo"><span class="prompt">~/</span>academy-cloud<span class="cursor"></span></div>
   <div class="nav-links">
-    <a href="index.html">[ home ]</a>
+    <a href="../index.html">[ home ]</a>
     <div class="nav-dropdown">
       <span class="nav-dd-trigger active">[ api ▾ ]</span>
       <div class="nav-dd-menu">
-        <a href="api.html">system check</a>
+        <a href="../api.html">system check</a>
         <a href="messages.html">messages</a>
         <a href="redis.html" class="active">kv store</a>
       </div>
@@ -26,71 +26,101 @@
   </div>
 </nav>
 
-<div class="chapter-bar">
-  <a href="messages.html" class="chapter-back">← Messages</a>
-  <div class="chapter-identity">
-    <span class="chapter-num">module 02</span>
-    <span class="chapter-title">Key-Value Store</span>
+<div class="api-nav">
+  <div class="api-crumb">
+    <a href="../index.html">~/</a>
+    <span class="crumb-sep">/</span>
+    <a href="../api.html">api-testing</a>
+    <span class="crumb-sep">/</span>
+    <span class="crumb-current">kv store</span>
   </div>
-  <a href="api.html" class="chapter-next">system check →</a>
+  <div class="api-tabs">
+    <a href="../api.html" class="api-tab"><span class="tab-idx">00</span>system check</a>
+    <a href="messages.html" class="api-tab"><span class="tab-idx">01</span>messages</a>
+    <a href="redis.html" class="api-tab active"><span class="tab-idx">02</span>kv store</a>
+  </div>
 </div>
 
 <div class="layout">
   <div class="left-col">
 
-    <!-- ── Feature card ── -->
+    <!-- ─────────────────────────────────────────────
+         1 · What this page does + expected result
+    ────────────────────────────────────────────── -->
     <div class="feature-card">
       <div class="feature-num">02 — Key-Value Store</div>
       <div class="feature-title">Redis as Managed Cache</div>
       <div class="feature-desc">
         Explore Redis as an in-memory key-value store. Set, get, list, and delete
         arbitrary keys directly through the API. This module introduces managed
-        caching and the operator workflow: provision a Redis instance, wire it
-        to the API container via <code style="font-size:0.75rem; background:var(--paper-dark); padding:0.05rem 0.3rem; border-radius:2px;">REDIS_URL</code>, then verify connectivity.
+        caching and the operator workflow: provision a Redis instance, wire it to the
+        API container via <code>REDIS_URL</code>, then verify connectivity.
       </div>
     </div>
 
-    <!-- ── Requirements ── -->
-    <div class="req-box">
-      <div class="req-title">required env vars</div>
-      <div class="env-line">
-        <span class="env-key">REDIS_URL</span>
-        <span class="env-eq">=</span>
-        <span class="env-val">redis://&lt;host&gt;:6379</span>
-        <span class="env-note"># required</span>
-      </div>
-      <div class="env-hint">
-        Quick start — run Redis locally:<br>
-        <code>docker run -d -p 6379:6379 redis:7</code><br><br>
-        Then restart the API with the env var set:<br>
-        <code>REDIS_URL=redis://localhost:6379 docker compose up api</code>
+    <div class="expected">
+      <div class="expected-label">expected result</div>
+      <div class="expected-body">
+        With Redis wired up, <code>GET /status</code> reports
+        <code>connected: true</code> and the key operations return
+        <code>200</code>/<code>204</code>. <strong>Without</strong> <code>REDIS_URL</code>,
+        <code>/status</code> still answers <code>200</code> but key operations return
+        <code>503</code> — that's the signal the backend isn't configured yet.
       </div>
     </div>
 
-    <!-- ── Debug tips ── -->
+    <!-- ─────────────────────────────────────────────
+         2 · Debug & configure the API
+    ────────────────────────────────────────────── -->
+    <div class="section-sep">Debug &amp; configure</div>
+
+    <div class="endpoint-readout">
+      <div class="req-title">required env var · set on the API</div>
+      <div class="endpoint-line">
+        <span class="env-key">REDIS_URL</span><span class="env-eq">=</span><span class="env-val">redis://&lt;host&gt;:6379</span>
+      </div>
+      <div class="endpoint-hint">
+        Provision a managed Redis (or a Redis container) in your cloud environment,
+        then set <code>REDIS_URL</code> on the <strong>API</strong>
+        service and redeploy. This page calls the API through:
+      </div>
+      <div class="endpoint-line">
+        <span class="ep-dot" data-api-dot></span>
+        <span class="ep-label">front</span>
+        <span class="ep-value" data-api-endpoint>…</span>
+      </div>
+    </div>
+
     <details class="debug-panel">
       <summary>// debug tips</summary>
       <div class="debug-content">
         <div class="debug-item">
           <span class="debug-symptom">503 on GET /keys, GET /{key}, POST /keys, DELETE /{key}</span>
-          <span class="debug-fix"><code>REDIS_URL</code> is not set on the API container. Note: <code>GET /status</code> always returns 200 (even unconfigured) — use it to confirm the variable is missing.</span>
+          <span class="debug-fix"><code>REDIS_URL</code> is not set on the API. Note: <code>GET /status</code> always returns 200 (even unconfigured) — use it to confirm the variable is missing.</span>
         </div>
         <div class="debug-item">
           <span class="debug-symptom">connected: false in GET /status</span>
-          <span class="debug-fix">Redis is configured but unreachable at the given URL. Check that the Redis container is running and the hostname/port in <code>REDIS_URL</code> is correct.</span>
+          <span class="debug-fix">Redis is configured but unreachable at the given URL. Check the instance is running and the host/port in <code>REDIS_URL</code> is correct.</span>
         </div>
         <div class="debug-item">
           <span class="debug-symptom">404 on GET /api/redis/{key}</span>
-          <span class="debug-fix">The key does not exist in Redis. Use <code>POST /api/redis/keys</code> to create it first, or <code>GET /api/redis/keys</code> to list what exists.</span>
+          <span class="debug-fix">The key does not exist. Use <code>POST /api/redis/keys</code> to create it first, or <code>GET /api/redis/keys</code> to list what exists.</span>
         </div>
         <div class="debug-item">
           <span class="debug-symptom">Keys disappear after a Redis restart</span>
-          <span class="debug-fix">Redis stores data in memory by default. Enable persistence (AOF or RDB snapshots) on your Redis instance if you need data to survive restarts.</span>
+          <span class="debug-fix">Redis stores data in memory by default. Enable persistence (AOF or RDB snapshots) if you need data to survive restarts.</span>
         </div>
       </div>
     </details>
 
-    <!-- ── API calls ── -->
+    <a class="docs-link" href="#" onclick="return false;">
+      <span class="docs-icon">▤</span> API reference — KV Store endpoints
+      <span class="docs-soon">coming soon</span>
+    </a>
+
+    <!-- ─────────────────────────────────────────────
+         3 · Run API commands
+    ────────────────────────────────────────────── -->
     <div class="section-sep">Connectivity</div>
 
     <div class="panel">
@@ -136,6 +166,9 @@
 
   </div>
 
+  <!-- ─────────────────────────────────────────────
+       4 · Fake shell · API responses
+  ────────────────────────────────────────────── -->
   <div class="terminal">
     <div class="term-bar">
       <div class="dot dot-r"></div>
@@ -147,23 +180,24 @@
     <div class="term-output" id="term">
       <div class="log">
         <span class="log-ts">--:--:--</span>
-        <span class="log-info">$ Module 02 — Key-Value Store. Start with GET /status to verify Redis connectivity.</span>
+        <span class="log-info">$ Key-Value Store module. Start with GET /status to verify Redis connectivity.</span>
       </div>
     </div>
   </div>
 </div>
 
-<script src="terminal.js"></script>
+<script src="../config.js"></script>
+<script src="../terminal.js"></script>
 <script>
   function log503() {
-    logRes(503, 'KV store unavailable — REDIS_URL not configured on the API container');
-    log(`<div class="log-indent">&nbsp;&nbsp;See the requirements box on the left for setup instructions.</div>`);
+    logRes(503, 'KV store unavailable — REDIS_URL not configured on the API');
+    log(`<div class="log-indent">&nbsp;&nbsp;See the configure box on the left for setup instructions.</div>`);
   }
 
   async function checkRedisStatus() {
     logReq('GET', '/api/redis/status');
     try {
-      const res = await fetch('/api/redis/status');
+      const res = await fetch(apiUrl('/api/redis/status'));
       const data = await res.json();
       if (data.connected) {
         logRes(res.status, JSON.stringify(data));
@@ -171,7 +205,7 @@
       } else {
         log(`<div class="log"><span class="log-ts">${ts()}</span><span class="log-err">● disconnected</span><span class="log-json"> ${escHtml(JSON.stringify(data))}</span></div>`);
         if (!data.connected && !data.url) {
-          log(`<div class="log-indent">&nbsp;&nbsp;REDIS_URL is not set. Configure it on the API container and restart.</div>`);
+          log(`<div class="log-indent">&nbsp;&nbsp;REDIS_URL is not set. Configure it on the API and redeploy.</div>`);
         } else {
           log(`<div class="log-indent">&nbsp;&nbsp;Redis is configured but unreachable. Verify the host and port in REDIS_URL.</div>`);
         }
@@ -184,7 +218,7 @@
   async function loadRedisKeys() {
     logReq('GET', '/api/redis/keys');
     try {
-      const res = await fetch('/api/redis/keys');
+      const res = await fetch(apiUrl('/api/redis/keys'));
       if (res.status === 503) { log503(); return; }
       const data = await res.json();
       logRes(res.status, `${data.keys.length} key(s)`);
@@ -206,7 +240,7 @@
     if (!key) return;
     logReq('GET', `/api/redis/${key}`);
     try {
-      const res = await fetch(`/api/redis/${encodeURIComponent(key)}`);
+      const res = await fetch(apiUrl(`/api/redis/${encodeURIComponent(key)}`));
       if (res.status === 503) { log503(); return; }
       const data = await res.json();
       logRes(res.status, JSON.stringify(data));
@@ -226,7 +260,7 @@
     const body = { key, value };
     logReq('POST', `/api/redis/keys ${JSON.stringify(body)}`);
     try {
-      const res = await fetch('/api/redis/keys', {
+      const res = await fetch(apiUrl('/api/redis/keys'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -248,7 +282,7 @@
     if (!key) return;
     logReq('DELETE', `/api/redis/${key}`);
     try {
-      const res = await fetch(`/api/redis/${encodeURIComponent(key)}`, { method: 'DELETE' });
+      const res = await fetch(apiUrl(`/api/redis/${encodeURIComponent(key)}`), { method: 'DELETE' });
       if (res.status === 503) { log503(); return; }
       if (res.status === 204) {
         logRes(204, `key '${key}' deleted successfully`);

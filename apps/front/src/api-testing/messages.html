@@ -4,21 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Messages — Academy Cloud</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../style.css">
   <style>
     :root { --module-accent: #16a34a; }
   </style>
 </head>
-<body class="has-chapter-bar">
+<body class="has-subnav">
 
 <nav>
   <div class="logo"><span class="prompt">~/</span>academy-cloud<span class="cursor"></span></div>
   <div class="nav-links">
-    <a href="index.html">[ home ]</a>
+    <a href="../index.html">[ home ]</a>
     <div class="nav-dropdown">
       <span class="nav-dd-trigger active">[ api ▾ ]</span>
       <div class="nav-dd-menu">
-        <a href="api.html">system check</a>
+        <a href="../api.html">system check</a>
         <a href="messages.html" class="active">messages</a>
         <a href="redis.html">kv store</a>
       </div>
@@ -26,42 +26,67 @@
   </div>
 </nav>
 
-<div class="chapter-bar">
-  <a href="api.html" class="chapter-back">← system check</a>
-  <div class="chapter-identity">
-    <span class="chapter-num">module 01</span>
-    <span class="chapter-title">Messages</span>
+<div class="api-nav">
+  <div class="api-crumb">
+    <a href="../index.html">~/</a>
+    <span class="crumb-sep">/</span>
+    <a href="../api.html">api-testing</a>
+    <span class="crumb-sep">/</span>
+    <span class="crumb-current">messages</span>
   </div>
-  <a href="redis.html" class="chapter-next">KV Store →</a>
+  <div class="api-tabs">
+    <a href="../api.html" class="api-tab"><span class="tab-idx">00</span>system check</a>
+    <a href="messages.html" class="api-tab active"><span class="tab-idx">01</span>messages</a>
+    <a href="redis.html" class="api-tab"><span class="tab-idx">02</span>kv store</a>
+  </div>
 </div>
 
 <div class="layout">
   <div class="left-col">
 
-    <!-- ── Feature card ── -->
+    <!-- ─────────────────────────────────────────────
+         1 · What this page does + expected result
+    ────────────────────────────────────────────── -->
     <div class="feature-card">
       <div class="feature-num">01 — Messages</div>
       <div class="feature-title">Persistent Message Board</div>
       <div class="feature-desc">
         Post messages with a text body and author name, then retrieve the full list.
-        The storage backend is swappable at runtime — in-memory by default, upgrades
-        to Redis or a cloud database via environment variables.
-        Use <code style="font-size:0.75rem; background:var(--paper-dark); padding:0.05rem 0.3rem; border-radius:2px;">GET /api/config</code> to inspect which backend is currently active.
+        The storage backend is swappable at runtime — in-memory by default, upgrading
+        to Redis or a cloud database via environment variables. Use
+        <code>GET /api/config</code> to inspect which backend is currently active.
       </div>
     </div>
 
-    <!-- ── Requirements ── -->
-    <div class="req-box">
-      <div class="req-title">required env vars</div>
-      <div class="env-none">None — works out of the box.</div>
-      <div class="env-hint">
-        In-memory storage is active by default. Data is lost on container restart.<br>
-        Set <code>REDIS_URL</code> to persist messages in Redis,
-        or set <code>AZURE_STORAGE_CONNECTION_STRING</code> for cloud storage.
+    <div class="expected">
+      <div class="expected-label">expected result</div>
+      <div class="expected-body">
+        <code>GET /api/messages</code> returns a JSON array (empty <code>[]</code> on a
+        fresh deployment). <code>POST /api/messages</code> replies <code>201</code> with
+        the created record — load the list again to see it appended.
       </div>
     </div>
 
-    <!-- ── Debug tips ── -->
+    <!-- ─────────────────────────────────────────────
+         2 · Debug & configure the API
+    ────────────────────────────────────────────── -->
+    <div class="section-sep">Debug &amp; configure</div>
+
+    <div class="endpoint-readout">
+      <div class="req-title">active api endpoint</div>
+      <div class="endpoint-line">
+        <span class="ep-dot" data-api-dot></span>
+        <span class="ep-label">base</span>
+        <span class="ep-value" data-api-endpoint>…</span>
+      </div>
+      <div class="endpoint-hint">
+        Calls failing? Re-run the <a href="../api.html" style="color:#22c55e; text-decoration:none">system check</a>
+        first. Storage is configured on the <strong>API</strong> side via
+        <code>REDIS_URL</code> or <code>AZURE_STORAGE_CONNECTION_STRING</code> — this page
+        only reads whatever backend the API reports.
+      </div>
+    </div>
+
     <details class="debug-panel">
       <summary>// debug tips</summary>
       <div class="debug-content">
@@ -70,8 +95,8 @@
           <span class="debug-fix">Expected on a fresh start — no messages have been created yet. Use POST to add the first one.</span>
         </div>
         <div class="debug-item">
-          <span class="debug-symptom">Messages lost after restarting the container</span>
-          <span class="debug-fix">In-memory storage is ephemeral. To persist data across restarts, configure a backend: <code>REDIS_URL</code> or a cloud storage connection string.</span>
+          <span class="debug-symptom">Messages lost after a redeploy</span>
+          <span class="debug-fix">In-memory storage is ephemeral. To persist data, configure a backend on the API: <code>REDIS_URL</code> or a cloud storage connection string.</span>
         </div>
         <div class="debug-item">
           <span class="debug-symptom">400 on POST /api/messages</span>
@@ -79,13 +104,20 @@
         </div>
         <div class="debug-item">
           <span class="debug-symptom">500 on any endpoint</span>
-          <span class="debug-fix">Server-side error. Check the API container logs: <code>docker compose logs api</code></span>
+          <span class="debug-fix">Server-side error. Inspect the API container logs in your cloud platform.</span>
         </div>
       </div>
     </details>
 
-    <!-- ── API calls ── -->
-    <div class="section-sep">API calls</div>
+    <a class="docs-link" href="#" onclick="return false;">
+      <span class="docs-icon">▤</span> API reference — Messages endpoints
+      <span class="docs-soon">coming soon</span>
+    </a>
+
+    <!-- ─────────────────────────────────────────────
+         3 · Run API commands
+    ────────────────────────────────────────────── -->
+    <div class="section-sep">Run API commands</div>
 
     <div class="panel">
       <div class="panel-title"><span class="method method-get">GET</span>/api/messages</div>
@@ -105,6 +137,9 @@
 
   </div>
 
+  <!-- ─────────────────────────────────────────────
+       4 · Fake shell · API responses
+  ────────────────────────────────────────────── -->
   <div class="terminal">
     <div class="term-bar">
       <div class="dot dot-r"></div>
@@ -116,18 +151,19 @@
     <div class="term-output" id="term">
       <div class="log">
         <span class="log-ts">--:--:--</span>
-        <span class="log-info">$ Module 01 — Messages. Load or post messages using the controls on the left.</span>
+        <span class="log-info">$ Messages module. Load or post messages using the controls on the left.</span>
       </div>
     </div>
   </div>
 </div>
 
-<script src="terminal.js"></script>
+<script src="../config.js"></script>
+<script src="../terminal.js"></script>
 <script>
   async function loadMessages() {
     logReq('GET', '/api/messages');
     try {
-      const res = await fetch('/api/messages');
+      const res = await fetch(apiUrl('/api/messages'));
       const msgs = await res.json();
       logRes(res.status, `${msgs.length} message(s)`);
       if (msgs.length === 0) {
@@ -139,6 +175,7 @@
       }
     } catch (e) {
       logRes('ERR', e.message);
+      log(`<div class="log-indent">&nbsp;&nbsp;Request failed. Check the active endpoint above and re-run the system check.</div>`);
     }
   }
 
@@ -150,7 +187,7 @@
     const body = { author, text };
     logReq('POST', `/api/messages ${JSON.stringify(body)}`);
     try {
-      const res = await fetch('/api/messages', {
+      const res = await fetch(apiUrl('/api/messages'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

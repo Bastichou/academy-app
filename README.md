@@ -62,9 +62,12 @@ docker pull ghcr.io/bastichou/academy-app/front:latest
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `AZURE_STORAGE_CONNECTION_STRING` | No | Switches the API from in-memory to Azure Table Storage |
+| `AZURE_STORAGE_CONNECTION_STRING` | No | Switches the API from in-memory to Azure Table Storage; also enables the Blob Storage routes |
+| `AZURE_SERVICEBUS_CONNECTION_STRING` | No | Enables the Azure Service Bus routes (`/api/azure/servicebus/*`) |
+| `AZURE_SERVICEBUS_QUEUE` | No | Queue name for the Service Bus routes (default `workshop`) |
+| `AZURE_BLOB_CONTAINER` | No | Container name for the Blob routes (default `workshop`) |
 
-Without this variable the API stores messages in memory (data is lost on restart). Set it to persist data in an Azure Storage Account.
+Without `AZURE_STORAGE_CONNECTION_STRING` the API stores messages in memory (data is lost on restart). Set it to persist data in an Azure Storage Account. The Azure Service Bus and Blob Storage routes are workshop utilities and return `503` until their connection string is configured. See [apps/api/README.md](apps/api/README.md) for the full route list.
 
 ## CI/CD
 

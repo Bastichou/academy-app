@@ -330,8 +330,8 @@ textarea:focus { border-color: var(--ink); }
   height: calc(100vh - 95px);
   min-height: 420px;
 }
-.has-chapter-bar .terminal { height: calc(100vh - 140px); }
-.has-chapter-bar .left-col { max-height: calc(100vh - 140px); }
+.has-subnav .terminal { height: calc(100vh - 140px); }
+.has-subnav .left-col { max-height: calc(100vh - 140px); }
 .term-bar {
   background: #181818;
   border-bottom: 1px solid #222;
@@ -440,16 +440,14 @@ textarea:focus { border-color: var(--ink); }
   color: var(--ink-mid);
   line-height: 1.75;
 }
-
-/* ── Requirements box ── */
-.req-box {
-  background: #0d0d0d;
-  border: 1px solid #222;
-  border-radius: 4px;
-  padding: 0.85rem 1rem;
-  margin-bottom: 0.75rem;
-  font-family: 'Source Code Pro', monospace;
+.feature-desc code {
+  font-size: 0.75rem;
+  background: var(--paper-dark);
+  padding: 0.05rem 0.3rem;
+  border-radius: 2px;
 }
+
+/* ── Env-var snippet (KEY=value) · used inside dark readout boxes ── */
 .req-title {
   color: #666;
   font-size: 0.58rem;
@@ -457,28 +455,9 @@ textarea:focus { border-color: var(--ink); }
   text-transform: uppercase;
   margin-bottom: 0.6rem;
 }
-.env-line {
-  display: flex;
-  gap: 0;
-  align-items: baseline;
-  margin-bottom: 0.3rem;
-  font-size: 0.72rem;
-  flex-wrap: wrap;
-}
-.env-key  { color: #22c55e; }
-.env-eq   { color: #555; }
-.env-val  { color: #f59e0b; }
-.env-note { color: #686868; font-size: 0.62rem; margin-left: 0.6rem; }
-.env-none { color: #9a9a9a; font-size: 0.7rem; }
-.env-hint {
-  color: #9a9a9a;
-  font-size: 0.62rem;
-  margin-top: 0.65rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #1a1a1a;
-  line-height: 1.75;
-}
-.env-hint code { color: #c0c0c0; }
+.env-key { color: #22c55e; }
+.env-eq  { color: #555; }
+.env-val { color: #f59e0b; }
 
 /* ── Debug accordion ── */
 .debug-panel { margin-bottom: 0.75rem; }
@@ -542,59 +521,165 @@ textarea:focus { border-color: var(--ink); }
   color: var(--ink-light);
 }
 
-/* ── Chapter bar (module pages) ── */
-.chapter-bar {
+/* ── API sub-nav: breadcrumb + segmented tabs (table of contents) ── */
+.api-nav {
   background: var(--paper-dark);
   border-bottom: 2px solid var(--module-accent, var(--green-mid));
-  padding: 0.6rem 2rem;
+  padding: 0.55rem 2rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
-.chapter-back {
+.api-crumb {
   font-family: 'Source Code Pro', monospace;
-  font-size: 0.63rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
   color: var(--ink-faint);
-  text-decoration: none;
-  letter-spacing: 0.04em;
-  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   white-space: nowrap;
 }
-.chapter-back:hover { color: var(--ink-mid); }
-.chapter-identity {
+.api-crumb a {
+  color: var(--ink-light);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.api-crumb a:hover { color: var(--ink); }
+.api-crumb .crumb-sep { color: var(--ink-faint); opacity: 0.7; }
+.api-crumb .crumb-current {
+  color: var(--module-accent, var(--green-mid));
+  font-weight: 600;
+}
+
+.api-tabs {
+  display: flex;
+  gap: 0.2rem;
+  background: var(--paper-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.2rem;
+  box-shadow: 1px 2px 0 var(--border);
+}
+.api-tab {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.03em;
+  color: var(--ink-light);
+  text-decoration: none;
+  padding: 0.32rem 0.7rem;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.api-tab:hover { color: var(--ink); background: var(--paper-dark); }
+.api-tab.active { background: var(--ink); color: var(--paper); }
+.api-tab .tab-idx { color: var(--ink-faint); font-size: 0.56rem; letter-spacing: 0; }
+.api-tab.active .tab-idx { color: var(--green-mid); }
+@media (max-width: 620px) {
+  .api-tabs { width: 100%; justify-content: space-between; }
+  .api-tab { flex: 1; justify-content: center; }
+}
+
+/* ── Endpoint readout (configure / debug) ── */
+.endpoint-readout {
+  background: #0d0d0d;
+  border: 1px solid #222;
+  border-radius: 4px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 0.75rem;
+  font-family: 'Source Code Pro', monospace;
+}
+.endpoint-readout .req-title { margin-bottom: 0.55rem; }
+.endpoint-line {
   display: flex;
   align-items: baseline;
-  gap: 0.7rem;
-  flex: 1;
-  min-width: 0;
+  gap: 0.55rem;
+  font-size: 0.72rem;
+  flex-wrap: wrap;
 }
-.chapter-num {
-  font-family: 'Source Code Pro', monospace;
-  font-size: 0.58rem;
-  color: var(--ink-faint);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  white-space: nowrap;
+.endpoint-line .ep-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #555;
   flex-shrink: 0;
+  align-self: center;
 }
-.chapter-title {
-  font-family: 'VT323', monospace;
-  font-size: 1.3rem;
-  color: var(--ink);
-  letter-spacing: 0.05em;
-  line-height: 1;
+.endpoint-line .ep-label { color: #686868; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.endpoint-line .ep-value { color: #f59e0b; word-break: break-all; }
+.endpoint-hint {
+  color: #9a9a9a;
+  font-size: 0.62rem;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #1a1a1a;
+  line-height: 1.75;
 }
-.chapter-next {
+.endpoint-hint code,
+.endpoint-hint strong { color: #c0c0c0; }
+.endpoint-hint + .endpoint-line { margin-top: 0.55rem; }
+
+/* ── Expected-result callout ── */
+.expected {
+  border-left: 2px solid var(--module-accent, var(--green-mid));
+  background: var(--paper-card);
+  border-radius: 0 4px 4px 0;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.75rem;
+}
+.expected-label {
   font-family: 'Source Code Pro', monospace;
-  font-size: 0.63rem;
-  color: var(--ink-faint);
-  text-decoration: none;
-  letter-spacing: 0.04em;
-  transition: color 0.15s;
-  white-space: nowrap;
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--module-accent, var(--green-mid));
+  margin-bottom: 0.3rem;
 }
-.chapter-next:hover { color: var(--ink-mid); }
+.expected-body {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.76rem;
+  color: var(--ink-mid);
+  line-height: 1.65;
+}
+.expected-body code {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.66rem;
+  background: var(--paper-dark);
+  padding: 0.05rem 0.3rem;
+  border-radius: 2px;
+}
+
+/* ── Docs link (API reference · coming soon) ── */
+.docs-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.66rem;
+  color: var(--ink-light);
+  background: var(--paper-card);
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  padding: 0.6rem 0.85rem;
+  margin-top: 0.5rem;
+}
+.docs-link .docs-icon { color: var(--module-accent, var(--green-mid)); }
+.docs-link .docs-soon {
+  margin-left: auto;
+  font-size: 0.54rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0.1rem 0.4rem;
+}
 
 /* ── Module nav grid (landing page) ── */
 .module-grid {
@@ -638,16 +723,40 @@ textarea:focus { border-color: var(--ink); }
   line-height: 1.1;
   margin-bottom: 0.15rem;
 }
-.mod-desc {
-  font-family: 'Source Code Pro', monospace;
-  font-size: 0.58rem;
-  color: var(--ink-faint);
-  line-height: 1.5;
-}
 .mod-arrow {
   font-family: 'Source Code Pro', monospace;
   font-size: 0.6rem;
   color: var(--ink-faint);
   margin-top: 0.35rem;
   display: block;
+}
+.mod-tested {
+  list-style: none;
+  margin: 0.5rem 0 0.1rem;
+  padding: 0;
+}
+.mod-tested li {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.58rem;
+  color: var(--ink-light);
+  line-height: 1.7;
+  display: flex;
+  gap: 0.4rem;
+}
+.mod-tested li::before {
+  content: '›';
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+.mod-req {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amber);
+  background: var(--amber-light);
+  border-radius: 2px;
+  padding: 0.08rem 0.36rem;
+  display: inline-block;
+  margin-top: 0.5rem;
 }

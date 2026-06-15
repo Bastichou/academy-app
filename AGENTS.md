@@ -54,11 +54,19 @@ All implement the abstract `MessageStorage` interface in `storage/base.py`. Conf
 - `GET /api/messages` → list
 - `POST /api/messages` → `{"text": str, "author": str}` (author defaults to `"Anonyme"`)
 - `GET /api/config` → safe config values (storage backend, version, connection flags — no secrets)
+- `GET /api/status` → feature-discovery list: each feature + `enabled` flag derived from config (no live probing); exposes env-var names only. Built for the frontend to show available features.
 - `GET /api/redis/status|keys|{key}`, `POST /api/redis/keys`, `DELETE /api/redis/{key}` → Redis KV workshop utility (503 when `REDIS_URL` unset)
+- `GET /api/azure/servicebus/status`, `POST /api/azure/servicebus/messages`, `GET /api/azure/servicebus/messages` → Service Bus send/consume (503 when `AZURE_SERVICEBUS_CONNECTION_STRING` unset)
+- `GET /api/azure/blob/status|/{name}`, `GET /api/azure/blob/`, `PUT /api/azure/blob/{name}` → Blob read/write, reuses `AZURE_STORAGE_CONNECTION_STRING` (503 when unset)
+
+**Route grouping:** Vendor-specific managed services (Azure Service Bus, Blob — no open protocol) live under a cloud-named prefix and folder: `src/routes/azure/*.py` → `/api/azure/...`. Open-protocol services (Redis) stay flat. New Azure async SDKs use their `aio` clients directly (no `asyncio.to_thread`, unlike the older sync `storage/azure.py`).
+
+**Azure error semantics** (shared helpers in `src/routes/azure/_errors.py`): not configured → 503; malformed connection string → 500; the Azure call failing (`azure.core.exceptions.AzureError`) → 502 with the upstream message in `detail`; not-found → 404. `/status` probes never raise — they return `{"connected": false, "detail": ...}`.
 
 **Testing:**
 - `asyncio_mode = "auto"` in pyproject.toml — no `@pytest.mark.asyncio` needed
 - Patch FastAPI async generator deps via `app.dependency_overrides[fn] = fake_gen`, not `mock.patch`
+- Azure SDK senders/receivers/blob clients are entered via `async with`; mock them with the `_AsyncCtx` helper in `tests/conftest.py` (see `mock_servicebus_client`, `mock_blob_container`)
 - `httpx2` deprecation warning in test output is from FastAPI's testclient — not project code
 
 ## Frontend — `apps/front/`

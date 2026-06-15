@@ -3,7 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from .routes.health import router as health_router
 from .routes.messages import router as messages_router
 from .routes.config import router as config_router
+from .routes.status import router as status_router
 from .routes.redis_kv import router as redis_kv_router
+from .routes.azure.servicebus import router as azure_servicebus_router
+from .routes.azure.blob import router as azure_blob_router
 
 app = FastAPI(title="Academy Cloud API", version="1.0.0")
 
@@ -17,4 +20,7 @@ app.add_middleware(
 app.include_router(health_router, prefix="/api")
 app.include_router(messages_router, prefix="/api")
 app.include_router(config_router, prefix="/api")
+app.include_router(status_router, prefix="/api")
 app.include_router(redis_kv_router, prefix="/api")
+app.include_router(azure_servicebus_router, prefix="/api")
+app.include_router(azure_blob_router, prefix="/api")
