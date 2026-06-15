@@ -5,6 +5,16 @@ function apiUrl(path) {
   return base + path;
 }
 
+// Fill any [data-api-endpoint] element with the active API endpoint (config.js ·
+// API_BASE), and toggle a green dot on [data-api-dot] when an explicit override
+// is set. Empty API_BASE means same-origin requests proxied by Nginx (default).
+document.addEventListener('DOMContentLoaded', () => {
+  const base = (window.API_BASE || '').trim();
+  const label = base || 'same-origin · /api/* (proxied by Nginx)';
+  document.querySelectorAll('[data-api-endpoint]').forEach(el => { el.textContent = label; });
+  document.querySelectorAll('[data-api-dot]').forEach(el => { el.style.background = base ? '#22c55e' : '#555'; });
+});
+
 function ts() { return new Date().toTimeString().slice(0, 8); }
 
 function log(html) {

@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>System Check — Academy Cloud</title>
+  <title>API Explorer — Academy Cloud</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    :root { --module-accent: #16a34a; }
+
     /* ── Hero card (dark, intro) ── */
     .hero-panel {
       background: var(--ink);
       border: 1px solid #2a2a2a;
       border-radius: 4px;
       padding: 1.2rem 1.15rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
       position: relative;
       overflow: hidden;
     }
@@ -47,61 +49,37 @@
     .hero-desc {
       font-family: 'Courier Prime', monospace;
       font-size: 0.78rem;
-      color: #999;
-      line-height: 1.7;
-      margin-bottom: 0.9rem;
+      color: #9a9a9a;
+      line-height: 1.75;
       position: relative;
     }
+    .hero-desc strong { color: #d7d3cc; font-weight: 700; }
 
-    /* ── Pre-flight checklist ── */
-    .pre-flight {
-      background: rgba(0,0,0,0.45);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 3px;
-      padding: 0.8rem 0.95rem;
-      position: relative;
-    }
-    .pf-title {
-      font-family: 'Source Code Pro', monospace;
-      font-size: 0.57rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: #666;
-      margin-bottom: 0.65rem;
-    }
-    .pf-item {
+    /* request → response flow strip */
+    .flow {
       display: flex;
-      align-items: flex-start;
-      gap: 0.6rem;
-      margin-bottom: 0.55rem;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.95rem;
+      position: relative;
+      flex-wrap: wrap;
+    }
+    .flow-node {
       font-family: 'Source Code Pro', monospace;
-      font-size: 0.67rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      color: #ccc;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 3px;
+      padding: 0.32rem 0.55rem;
+      background: rgba(255,255,255,0.03);
+      white-space: nowrap;
     }
-    .pf-item:last-child { margin-bottom: 0; }
-    .pf-icon { flex-shrink: 0; font-size: 0.6rem; margin-top: 0.05rem; line-height: 1.4; }
-    .pf-icon.req  { color: var(--green-mid); }
-    .pf-icon.opt  { color: #555; }
-    .pf-body { color: #999; line-height: 1.5; }
-    .pf-body strong { color: #ccc; font-weight: 600; }
-    .pf-cmd {
-      display: block;
-      color: #777;
-      font-size: 0.62rem;
-      margin-top: 0.15rem;
-    }
-    .pf-tag {
-      display: inline-block;
-      font-size: 0.56rem;
-      padding: 0.05rem 0.3rem;
-      border-radius: 2px;
-      margin-left: 0.3rem;
-      vertical-align: middle;
-    }
-    .pf-tag.required { background: rgba(22,163,74,0.15); color: #16a34a; }
-    .pf-tag.optional { background: rgba(255,255,255,0.05); color: #666; }
+    .flow-node.accent { border-color: rgba(22,163,74,0.5); color: var(--green-mid); }
+    .flow-arrow { color: #555; font-size: 0.7rem; }
   </style>
 </head>
-<body>
+<body class="has-subnav">
 
 <nav>
   <div class="logo"><span class="prompt">~/</span>academy-cloud<span class="cursor"></span></div>
@@ -111,67 +89,73 @@
       <span class="nav-dd-trigger active">[ api ▾ ]</span>
       <div class="nav-dd-menu">
         <a href="api.html" class="active">system check</a>
-        <a href="messages.html">messages</a>
-        <a href="redis.html">kv store</a>
+        <a href="api-testing/messages.html">messages</a>
+        <a href="api-testing/redis.html">kv store</a>
       </div>
     </div>
   </div>
 </nav>
+
+<div class="api-nav">
+  <div class="api-crumb">
+    <a href="index.html">~/</a>
+    <span class="crumb-sep">/</span>
+    <span class="crumb-current">api-testing</span>
+  </div>
+  <div class="api-tabs">
+    <a href="api.html" class="api-tab active"><span class="tab-idx">00</span>system check</a>
+    <a href="api-testing/messages.html" class="api-tab"><span class="tab-idx">01</span>messages</a>
+    <a href="api-testing/redis.html" class="api-tab"><span class="tab-idx">02</span>kv store</a>
+  </div>
+</div>
 
 <div class="layout">
   <div class="left-col">
 
     <!-- ── Hero card ── -->
     <div class="hero-panel">
-      <div class="hero-label">// api explorer · pre-flight</div>
-      <div class="hero-title">System Check</div>
+      <div class="hero-label">// api explorer · the front is a thin client</div>
+      <div class="hero-title">What this app does</div>
       <div class="hero-desc">
-        Run these two checks to confirm the frontend can reach the backend API.
-        Once both return green, pick a module below.
+        This frontend ships <strong>no data of its own</strong> — every list, value and
+        status you see is fetched live from the academy <strong>API</strong>. The app runs on
+        <strong>cloud infrastructure</strong>, not on your laptop, so the only thing that
+        matters here is whether the browser can reach that API and whether it's
+        configured correctly. Run the system check below, then pick a module to call it.
       </div>
-
-      <div class="pre-flight">
-        <div class="pf-title">before you begin</div>
-
-        <div class="pf-item">
-          <span class="pf-icon req">✦</span>
-          <div class="pf-body">
-            <strong>Stack running</strong>
-            <span class="pf-tag required">required</span>
-            <span class="pf-cmd">cd infrastructure &amp;&amp; docker compose up --build</span>
-          </div>
-        </div>
-
-        <div class="pf-item">
-          <span class="pf-icon req">✦</span>
-          <div class="pf-body">
-            <strong>App accessible</strong>
-            <span class="pf-tag required">required</span>
-            <span class="pf-cmd">http://localhost:8000</span>
-          </div>
-        </div>
-
-        <div class="pf-item">
-          <span class="pf-icon opt">○</span>
-          <div class="pf-body">
-            <strong>REDIS_URL</strong>
-            <span class="pf-tag optional">optional · KV Store module</span>
-            <span class="pf-cmd">REDIS_URL=redis://&lt;host&gt;:6379</span>
-          </div>
-        </div>
-
-        <div class="pf-item">
-          <span class="pf-icon opt">○</span>
-          <div class="pf-body">
-            <strong>Storage connection string</strong>
-            <span class="pf-tag optional">optional · cloud storage</span>
-          </div>
-        </div>
+      <div class="flow">
+        <span class="flow-node accent">FRONT</span>
+        <span class="flow-arrow">— fetch /api/* →</span>
+        <span class="flow-node">API</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-node">STORAGE</span>
       </div>
     </div>
 
-    <!-- ── Status ── -->
-    <div class="section-sep">Status</div>
+    <!-- ── Configure the API endpoint ── -->
+    <div class="section-sep">Configure the endpoint</div>
+
+    <div class="endpoint-readout">
+      <div class="req-title">active api endpoint</div>
+      <div class="endpoint-line">
+        <span class="ep-dot" data-api-dot></span>
+        <span class="ep-label">base</span>
+        <span class="ep-value" data-api-endpoint>…</span>
+      </div>
+      <div class="endpoint-hint">
+        The endpoint is read from <code>window.API_BASE</code> in <code>config.js</code>,
+        which is regenerated at container startup from the <code>API_BASE</code>
+        environment variable.<br><br>
+        <strong>Empty</strong> → same-origin <code>/api/*</code>,
+        proxied by Nginx (the default).<br>
+        <strong>Override</strong> → point the front straight at a
+        backend host. The target API must then allow CORS.<br><br>
+        <span class="env-key">API_BASE</span><span class="env-eq">=</span><span class="env-val">https://api.example.com</span>
+      </div>
+    </div>
+
+    <!-- ── System check ── -->
+    <div class="section-sep">System check</div>
 
     <div class="panel">
       <div class="panel-title"><span class="method method-get">GET</span>/api/health</div>
@@ -181,29 +165,35 @@
       </div>
     </div>
 
-    <!-- ── Configuration ── -->
-    <div class="section-sep">Configuration</div>
-
     <div class="panel">
       <div class="panel-title"><span class="method method-get">GET</span>/api/config</div>
       <button class="btn btn-dark" onclick="loadConfig()">▶ Load config</button>
     </div>
 
-    <!-- ── Modules ── -->
-    <div class="section-sep">Modules</div>
+    <!-- ── Table of contents ── -->
+    <div class="section-sep">Modules · what you'll test</div>
 
     <div class="module-grid">
-      <a href="messages.html" class="module-card mod-messages">
-        <div class="mod-num">01</div>
-        <div class="mod-name">Messages</div>
-        <div class="mod-desc">POST/GET messages · persistent storage</div>
-        <span class="mod-arrow">→</span>
+      <a href="api-testing/messages.html" class="module-card mod-messages">
+        <div class="mod-num">01 — MESSAGES</div>
+        <div class="mod-name">Message Board</div>
+        <ul class="mod-tested">
+          <li>List messages — <code style="font-size:0.55rem">GET /api/messages</code></li>
+          <li>Post a message — <code style="font-size:0.55rem">POST /api/messages</code></li>
+          <li>Inspect the active storage backend</li>
+        </ul>
+        <span class="mod-arrow">open module →</span>
       </a>
-      <a href="redis.html" class="module-card mod-redis">
-        <div class="mod-num">02</div>
-        <div class="mod-name">KV Store</div>
-        <div class="mod-desc">Redis key-value store · requires REDIS_URL</div>
-        <span class="mod-arrow">→</span>
+      <a href="api-testing/redis.html" class="module-card mod-redis">
+        <div class="mod-num">02 — KV STORE</div>
+        <div class="mod-name">Redis Key-Value</div>
+        <ul class="mod-tested">
+          <li>Check connectivity — <code style="font-size:0.55rem">GET /status</code></li>
+          <li>Set / get / list / delete keys</li>
+          <li>Wire Redis to the API operator-style</li>
+        </ul>
+        <span class="mod-req">requires REDIS_URL</span>
+        <span class="mod-arrow">open module →</span>
       </a>
     </div>
 
@@ -220,7 +210,7 @@
     <div class="term-output" id="term">
       <div class="log">
         <span class="log-ts">--:--:--</span>
-        <span class="log-info">$ Stack health check and configuration inspector.</span>
+        <span class="log-info">$ Health check and configuration inspector.</span>
       </div>
       <div class="log">
         <span class="log-ts">--:--:--</span>
@@ -254,7 +244,7 @@
       badge.textContent = '● unreachable';
       badge.className = 'err';
       logRes('ERR', e.message);
-      log(`<div class="log-indent">&nbsp;&nbsp;Check that the stack is running: <span class="log-json">docker compose up --build</span></div>`);
+      log(`<div class="log-indent">&nbsp;&nbsp;The API is not reachable. Confirm the endpoint above points at a running backend.</div>`);
     }
   }
 
