@@ -7,6 +7,9 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     app_version: str = "0.1.0"
     azure_storage_connection_string: str = ""
+    azure_servicebus_connection_string: str = ""
+    azure_servicebus_queue: str = "workshop"
+    azure_blob_container: str = "workshop"
     redis_url: str = ""
 
     @property

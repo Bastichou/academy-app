@@ -12,4 +12,6 @@ async def get_config():
         "storage_backend": settings.storage_backend,
         "redis_connected": bool(settings.redis_url),
         "azure_storage_configured": bool(settings.azure_storage_connection_string),
+        "azure_servicebus_configured": bool(settings.azure_servicebus_connection_string),
+        "azure_blob_configured": bool(settings.azure_storage_connection_string),
     }
